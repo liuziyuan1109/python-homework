@@ -10,3 +10,9 @@ __pycache__/
 # 忽略虚拟环境文件夹
 venv/
 .env/
+
+# 忽略临时调试文件
+tempCodeRunnerFile
+
+# 忽略CSV
+*.csv
