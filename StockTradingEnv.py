@@ -9,7 +9,9 @@ class StockTradingEnv(gym.Env):
         self.initial_balance = initial_balance
         self.current_step = 0
         self.done = False
-        self.previous_total_value = initial_balance
+        self.total_value = initial_balance
+        self.balance = initial_balance
+        self.portfolio = 0
 
         # 动作空间（买入、卖出、持有）
         self.action_space = spaces.Discrete(3)
@@ -27,13 +29,14 @@ class StockTradingEnv(gym.Env):
         if self.current_step >= len(self.data) - 1:
             self.done = True
 
-        return self._next_observation(), reward, self.done, {"总资产": self.previous_total_value}
+        return self._next_observation(), reward, self.done, {"总资产": self.total_value}
 
     def reset(self):
         self.balance = self.initial_balance
         self.current_step = 0
         self.done = False
         self.portfolio = 0  # 当前持有的股票数量
+        self.total_value = self.initial_balance
         return self._next_observation()
 
     def _next_observation(self):
@@ -44,6 +47,8 @@ class StockTradingEnv(gym.Env):
 
     def _take_action(self, action):
         current_price = self.data.iloc[self.current_step]["Close"]
+        last_balance = self.balance
+        last_portfolio = self.portfolio
 
         # 执行买入或卖出动作
         if action == 0:  # 买入
@@ -56,12 +61,21 @@ class StockTradingEnv(gym.Env):
         # 计算总资产值
         total_value = self.balance + self.portfolio * current_price
 
-        # 计算奖励
-        reward = total_value - self.previous_total_value  # 奖励基于资产增长
-        self.previous_total_value = total_value
+        punish = 0
 
         # 惩罚过度交易
         # transaction_cost = 0.001  # 交易成本（0.1%）
         # if action in [0, 1]:  # 有交易时扣除手续费
-        #     reward -= transaction_cost * current_price * self.portfolio
+        #     punish = transaction_cost * current_price * self.portfolio
+
+        # 惩罚不交易
+        if last_balance == self.balance or last_portfolio == self.portfolio:
+            punish = self.initial_balance / 100
+            
+        # 计算奖励
+        reward = total_value - self.total_value - punish  # 奖励基于资产增长
+        # print(f'上次总市值：{self.total_value}，本次总市值：{total_value}')
+
+        self.total_value = total_value
+
         return reward
