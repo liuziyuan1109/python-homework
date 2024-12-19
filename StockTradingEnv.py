@@ -29,7 +29,7 @@ class StockTradingEnv(gym.Env):
         if self.current_step >= len(self.data) - 1:
             self.done = True
 
-        return self._next_observation(), reward, self.done, {"总资产": self.total_value}
+        return self._next_observation(), reward, self.done, {"total_asset": self.total_value}
 
     def reset(self):
         self.balance = self.initial_balance
@@ -61,7 +61,6 @@ class StockTradingEnv(gym.Env):
         # 计算总资产值
         total_value = self.balance + self.portfolio * current_price
 
-        punish = 0
 
         # 惩罚过度交易
         # transaction_cost = 0.001  # 交易成本（0.1%）
@@ -69,11 +68,13 @@ class StockTradingEnv(gym.Env):
         #     punish = transaction_cost * current_price * self.portfolio
 
         # 惩罚不交易
-        if last_balance == self.balance or last_portfolio == self.portfolio:
-            punish = self.initial_balance / 100
+        # if last_balance == self.balance or last_portfolio == self.portfolio:
+        #     punish = self.initial_balance / 100
             
         # 计算奖励
-        reward = total_value - self.total_value - punish  # 奖励基于资产增长
+        reward = total_value - self.total_value # 奖励基于资产增长
+        if reward > 0:
+            reward *= 2
         # print(f'上次总市值：{self.total_value}，本次总市值：{total_value}')
 
         self.total_value = total_value
