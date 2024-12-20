@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 
-class Visualization():
+class Visualizer():
     def __init__(self):
         pass
 
-    def maxProfit(self, prices, balance):
+    def _maxProfit(self, prices, balance):
         ans = [0]
         left = 0
         right = 1
@@ -19,7 +19,7 @@ class Visualization():
             ans[i] = ans[i] * balance
         return ans
 
-    def avgProfit(self, prices, balance):
+    def _avgProfit(self, prices, balance):
         ans = [0]
         left = 0
         right = 1
@@ -33,13 +33,12 @@ class Visualization():
         
         return ans
     
-    def visualize(self, prices, profits):
+    def visualize(self, prices, profits, show=False):
         days = len(prices)
         # 创建折线图
         plt.plot([i for i in range(days)], profits, label='profit')
-        print(f"Final Profit: {profits[-1]}")
-        # plt.plot([i for i in range(days)], maxProfit(prices, 10000))
-        plt.plot([i for i in range(days)], self.avgProfit(prices, 10000), label='market trend')
+        # plt.plot([i for i in range(days)], _maxProfit(prices, 10000), label='max profit')
+        plt.plot([i for i in range(days)], self._avgProfit(prices, 10000), label='market trend')
         plt.grid(True)
 
         # 添加标题
@@ -48,5 +47,8 @@ class Visualization():
         # 添加X轴和Y轴标签
         plt.xlabel("Days")
         plt.ylabel("Profit")
+        
         plt.legend()
-        plt.show()
+        plt.savefig("profit.png", dpi=300)
+        if show:
+            plt.show()
