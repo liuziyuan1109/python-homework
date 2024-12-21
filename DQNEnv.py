@@ -2,9 +2,9 @@ import numpy as np
 import gym
 from gym import spaces
 
-class StockTradingEnv(gym.Env):
-    def __init__(self, data, initial_balance=10000, fee_rate=0, invest_ratio=1.0, rebalance_period=2, max_stocks=float('inf')):
-        super(StockTradingEnv, self).__init__()
+class DQNEnv(gym.Env):
+    def __init__(self, data, initial_balance=10000, fee_rate=0, invest_ratio=1.0, rebalance_period=1, max_stocks=float('inf')):
+        super(DQNEnv, self).__init__()
         self.data = data
         self.initial_balance = initial_balance
         self.fee_rate = fee_rate  # 手续费率
@@ -28,14 +28,16 @@ class StockTradingEnv(gym.Env):
         self.reset()
 
     def step(self, action):
-        reward = self._take_action(action)
-        day = self.current_step
-        self.current_step += self.rebalance_period
-
-        if self.current_step >= len(self.data) - 1:
+        if self.current_step + self.rebalance_period > len(self.data) - 1:
+            reward = self._take_action(action)
             self.done = True
+            return self._next_observation(), reward, self.done, {"total_asset": self.total_value, "day": len(self.data) - 1, "portfolio": self.portfolio}
 
-        return self._next_observation(), reward, self.done, {"total_asset": self.total_value, "day": day}
+        day = self.current_step
+        reward = self._take_action(action)
+        self.current_step += self.rebalance_period
+        
+        return self._next_observation(), reward, self.done, {"total_asset": self.total_value, "day": day, "portfolio": self.portfolio}
 
     def reset(self):
         self.balance = self.initial_balance
@@ -79,7 +81,7 @@ class StockTradingEnv(gym.Env):
         # 计算总资产值
         total_value = self.balance + self.portfolio * current_price
 
-        # 计算奖励
+        # 计算奖励，奖励基于资产增长
         reward = total_value - self.total_value
         self.total_value = total_value
 
@@ -90,11 +92,6 @@ class StockTradingEnv(gym.Env):
             punish = self.initial_balance / 100
             
         # 计算奖励
-        reward = total_value - self.total_value - punish # 奖励基于资产增长
-        # if reward > 0:
-        #     reward += total_value * 0.1
-        # print(f'上次总市值：{self.total_value}，本次总市值：{total_value}')
-
-        self.total_value = total_value
+        reward -= punish
 
         return reward

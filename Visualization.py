@@ -19,36 +19,37 @@ class Visualizer():
             ans[i] = ans[i] * balance
         return ans
 
-    def _avgProfit(self, prices, balance):
-        ans = [0]
-        left = 0
-        right = 1
-        num = balance / prices[0]
-        while right < len(prices):
-            ans.append(prices[right] - prices[right-1] + ans[-1])   
-            left += 1
-            right += 1
-        for i in range(len(ans)):
-            ans[i] = ans[i] * num
+    # def _avgProfit(self, prices, balance):
+    #     ans = [0]
+    #     left = 0
+    #     right = 1
+    #     num = balance / prices[0]
+    #     while right < len(prices):
+    #         ans.append(prices[right] - prices[right-1] + ans[-1])   
+    #         left += 1
+    #         right += 1
+    #     for i in range(len(ans)):
+    #         ans[i] = ans[i] * num
         
-        return ans
+    #     return ans
     
-    def visualize(self, prices, profits, show=False):
-        days = len(prices)
+    def visualize(self, prices, total_asset, days, initial_balance, show=False):
+        profit_rate = [x / initial_balance - 1 for x in total_asset]
+        market_trend = [x / prices[0] - 1 for x in prices]
         # 创建折线图
-        plt.plot([i for i in range(days)], profits, label='profit')
+        plt.plot(days, profit_rate, label='profit rate')
         # plt.plot([i for i in range(days)], _maxProfit(prices, 10000), label='max profit')
-        plt.plot([i for i in range(days)], self._avgProfit(prices, 10000), label='market trend')
+        plt.plot(days, market_trend, label='market trend')
         plt.grid(True)
 
         # 添加标题
-        plt.title("Profit")
+        plt.title("Profit rate")
 
         # 添加X轴和Y轴标签
         plt.xlabel("Days")
-        plt.ylabel("Profit")
+        plt.ylabel("Profit rate")
         
         plt.legend()
-        plt.savefig("profit.png", dpi=300)
+        plt.savefig("profit_rate.png", dpi=300, bbox_inches='tight')
         if show:
             plt.show()
